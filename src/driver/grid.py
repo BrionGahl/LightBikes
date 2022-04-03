@@ -11,7 +11,7 @@ class Grid(QFrame):
         self._timer = QBasicTimer()
         self.setStyleSheet("Border : 2px solid black")
 
-        self._players = [Bike(5, 10, Direction.RIGHT, Color.BLUE.value), Bike(55, 30, Direction.LEFT, Color.ORANGE.value)]
+        self._players = [Bike(5, 10, Direction.RIGHT, Color.GREEN.value), Bike(55, 30, Direction.LEFT, Color.PINK.value)]
 
         self.setFocusPolicy(Qt.StrongFocus)
 
@@ -67,9 +67,16 @@ class Grid(QFrame):
         self._bike = self._players[0].getTrail()
         self._other = self._players[1].getTrail()
 
-        for i in self._bike:
-            if i in self._other:
-                self.endgame()
+        if self._bike[0] in self._other[1:]: #if head of bike 1 is in every other part of another bike. If bike == other head then they collided head on
+            self.endgame()
+            
+        if self._bike[0] == self._other[0]:
+            print("Draw")
+            self.endgame()
+
+        #for i in self._bike:
+        #    if i in self._other:
+        #        self.endgame()
 
         for i in range(1, len(self._bike)):
             if self._bike[0] == self._bike[i]:

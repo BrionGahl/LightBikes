@@ -1,11 +1,17 @@
 from PyQt5.QtWidgets import *
 import sys
 import argparse
+import threading
+import time
 
 from driver.window import Window
 
+from connection.server import Server
+from connection.client import Client
+
 def runServer():
-    print("--server or -s was given.")
+    print("Hosting server...")
+    server = Server()
     return
 
 
@@ -17,10 +23,13 @@ def main():
     
     ip = args.ip
     if args.server:
-        runServer()
+        server = threading.Thread(target=runServer, args=(), daemon=True)
+        server.start()
         ip = "localhost"
+        
+    client = Client(ip)
+        
     print(ip)
-    
     app = QApplication([])
     window = Window()
     sys.exit(app.exec_())
