@@ -12,15 +12,15 @@ class Server():
         self._acceptingPlayers = True
         self._connectedPlayers = []
         try:
-            self._s = socket.socket()
-            self._s.bind(('', Server.PORT))
+            self._s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self._s.bind((socket.gethostname(), Server.PORT))
             self._s.listen(Server.MAX_PLAYERS)
         except:
-            print("error establishing server.")
+            print("SERVER: error establishing server.")
         
         while self._acceptingPlayers:
             conn, addr = self._s.accept()
-            print("connection from", addr[0])
+            print("SERVER: connection from", addr[0])
             
             currPlayer = Player(conn, len(self._connectedPlayers), self._connectedPlayers)
             self._connectedPlayers.append(currPlayer)
@@ -28,6 +28,7 @@ class Server():
             threading.Thread(target=currPlayer.run, args=()).start()
             
             self._acceptingPlayers = len(self._connectedPlayers) < Server.MAX_PLAYERS
+        
 
 class Player():
     #conn will be closed in this class
@@ -40,17 +41,22 @@ class Player():
     def run(self):
         threading.Thread(target=self.listener, args=()).start()
         
-        print("sending player number: " + str(self._playerNumber))
+        print("SERVER: sending player number: " + str(self._playerNumber))
         self.sendPlayerNumber()
         
         if (self._playerNumber + 1 == Server.MAX_PLAYERS):
             self.startGame()
     
     def listener(self):
+        line = ""
         while True:
-            print("Listening...")
-            #print("RECV: " + self._conn.recv(1024).decode())
-            #self.parseCommands(line)
+            try:
+                line = self._conn.recv(1024).decode()
+            except:
+                print("SERVER: error in listener")
+    
+            if ":" in line:
+                self.parseCommands(line)
     
     def parseCommands(self, line):
         commands = line.split(";")
@@ -73,7 +79,7 @@ class Player():
         try:
             self._conn.send(commandString.encode())
         except:
-            print("failed to send command.")
+            print("SERVER: failed to send command.")
             
     def makeCommandString(self, command, value):
         return command + ":" + value + ";"

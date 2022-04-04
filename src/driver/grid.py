@@ -17,7 +17,7 @@ class Grid(QFrame):
 
         #conn will be closed inthis class
         conn = Client(ip)
-
+        
         self.setFocusPolicy(Qt.StrongFocus)
 
     def squareWidth(self):
