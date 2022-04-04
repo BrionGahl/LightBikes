@@ -4,14 +4,19 @@ from PyQt5.QtGui import *
 
 from driver.bike import Bike
 from driver.constants import *
+from connection.client import Client
 
 class Grid(QFrame):
-    def __init__(self, parent):
+    
+    def __init__(self, parent, ip):
         super(Grid, self).__init__(parent)
         self._timer = QBasicTimer()
         self.setStyleSheet("Border : 2px solid black")
 
         self._players = [Bike(5, 10, Direction.RIGHT, Color.GREEN.value), Bike(55, 30, Direction.LEFT, Color.PINK.value)]
+
+        #conn will be closed inthis class
+        conn = Client(ip)
 
         self.setFocusPolicy(Qt.StrongFocus)
 
@@ -73,10 +78,6 @@ class Grid(QFrame):
         if self._bike[0] == self._other[0]:
             print("Draw")
             self.endgame()
-
-        #for i in self._bike:
-        #    if i in self._other:
-        #        self.endgame()
 
         for i in range(1, len(self._bike)):
             if self._bike[0] == self._bike[i]:

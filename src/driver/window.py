@@ -7,12 +7,12 @@ from driver.grid import Grid
 from connection.client import *
 
 class Window(QMainWindow):
-    def __init__(self):
+    def __init__(self, ip):
         super(Window, self).__init__()
-        self._grid = Grid(self)
+        self._grid = Grid(self, ip)
         self.setCentralWidget(self._grid)
         self.setWindowTitle('Light Bikes')
         self.setGeometry(100, 100, 600, 400)
-        self._grid.start()
+        self._grid.start() #this will be removed to allow server to start
         self.show()
 

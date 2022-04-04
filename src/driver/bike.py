@@ -9,7 +9,6 @@ class Bike():
         self._trail = [[initialX, initialY]]
         self._currentX = initialX
         self._currentY = initialY
-        self._currentPos = [initialX, initialY]
 
         self._direction = direction
         self._color = color
