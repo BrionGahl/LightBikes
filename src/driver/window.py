@@ -13,6 +13,5 @@ class Window(QMainWindow):
         self.setCentralWidget(self._grid)
         self.setWindowTitle('Light Bikes')
         self.setGeometry(100, 100, 600, 400)
-        self._grid.start() #this will be removed to allow server to start
         self.show()
 

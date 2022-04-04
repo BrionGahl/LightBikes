@@ -1,6 +1,6 @@
 import socket
 import threading
-
+import sys
 # Sender thread to send commands
 # Listener thread to listen for commands
 
@@ -8,15 +8,20 @@ class Server():
     PORT = 4477
     MAX_PLAYERS = 2
     
+    BYTES = 1024
+    
     def __init__(self):
         self._acceptingPlayers = True
         self._connectedPlayers = []
         try:
             self._s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self._s.bind((socket.gethostname(), Server.PORT))
+            self._s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+            self._s.bind(("", Server.PORT))
             self._s.listen(Server.MAX_PLAYERS)
         except:
             print("SERVER: error establishing server.")
+            sys.exit()
         
         while self._acceptingPlayers:
             conn, addr = self._s.accept()
@@ -39,24 +44,24 @@ class Player():
         return
         
     def run(self):
-        threading.Thread(target=self.listener, args=()).start()
-        
         print("SERVER: sending player number: " + str(self._playerNumber))
         self.sendPlayerNumber()
         
+        threading.Thread(target=self.listener, args=()).start()
         if (self._playerNumber + 1 == Server.MAX_PLAYERS):
             self.startGame()
     
     def listener(self):
         line = ""
         while True:
+            print("listening to " + str(self._conn))
             try:
-                line = self._conn.recv(1024).decode()
-            except:
-                print("SERVER: error in listener")
-    
-            if ":" in line:
-                self.parseCommands(line)
+                data = self._conn.recv(1024)
+                line = data.decode()
+            except Exception as error:
+                print("SERVER: " + str(error))
+                sys.exit()
+            self.parseCommands(line)
     
     def parseCommands(self, line):
         commands = line.split(";")
@@ -77,9 +82,9 @@ class Player():
                
     def send(self, commandString):
         try:
-            self._conn.send(commandString.encode())
-        except:
-            print("SERVER: failed to send command.")
+            self._conn.sendall(commandString.encode())
+        except Exception as error:
+            print("SERVER: " + str(error))
             
     def makeCommandString(self, command, value):
         return command + ":" + value + ";"

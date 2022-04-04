@@ -16,10 +16,14 @@ class Grid(QFrame):
         self._players = [Bike(5, 10, Direction.RIGHT, Color.GREEN.value), Bike(55, 30, Direction.LEFT, Color.PINK.value)]
 
         #conn will be closed inthis class
-        conn = Client(ip)
-        
-        self.setFocusPolicy(Qt.StrongFocus)
+        self._conn = Client(ip)
 
+        self.setFocusPolicy(Qt.StrongFocus)
+        
+        while not self._conn.isReady():
+            pass
+        self.start()
+            
     def squareWidth(self):
         return self.contentsRect().width() / Controller.BLOCKWIDTH
 
