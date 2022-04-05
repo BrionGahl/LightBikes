@@ -54,7 +54,6 @@ class Player():
     def listener(self):
         line = ""
         while True:
-            print("listening to " + str(self._conn))
             try:
                 data = self._conn.recv(1024)
                 line = data.decode()
@@ -66,6 +65,8 @@ class Player():
     def parseCommands(self, line):
         commands = line.split(";")
         for command in commands:
+            if command == "":
+                continue
             self.processCommand(command)
     
     def getNumber(self):
@@ -97,7 +98,9 @@ class Player():
         if command == "set-location":
             self.pushToOthers(self._playerNumber, "update-location:" + value)
         elif command == "set-dead":
-            self.pushToOthers(self._playerNumber, "dead:" + value)
+            self.pushToOthers(self._playerNumber, "set-dead:" + value)
+        elif command == "set-draw":
+            self.pushToOthers(self._playerNumber, "set-draw:" + value)
 
     # Commands
     def startGame(self):

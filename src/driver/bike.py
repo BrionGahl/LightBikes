@@ -25,8 +25,10 @@ class Bike():
 
         if self._direction == Direction.UP:
             self._currentX, self._currentY = self._currentX, self._currentY - 1
+        
         self._trail.insert(0, [self._currentX, self._currentY])
-
+        return(str(self._currentX) + "," + str(self._currentY))
+        
     def getTrail(self):
         return self._trail
 

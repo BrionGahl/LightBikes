@@ -6,6 +6,8 @@ from driver.bike import Bike
 from driver.constants import *
 from connection.client import Client
 
+import time
+
 class Grid(QFrame):
     
     def __init__(self, parent, ip):
@@ -13,15 +15,29 @@ class Grid(QFrame):
         self._timer = QBasicTimer()
         self.setStyleSheet("Border : 2px solid black")
 
-        self._players = [Bike(5, 10, Direction.RIGHT, Color.GREEN.value), Bike(55, 30, Direction.LEFT, Color.PINK.value)]
+        self._players = [Bike(5, 10, Direction.RIGHT, Color.BLUE.value), Bike(55, 30, Direction.LEFT, Color.ORANGE.value)]
 
         #conn will be closed inthis class
-        self._conn = Client(ip)
+        self._conn = Client(ip, self._players)
 
         self.setFocusPolicy(Qt.StrongFocus)
         
         while not self._conn.isReady():
             pass
+        
+        self._playerNumber = self._conn.getPlayerNumber()
+        
+        self._controlled = self._players[self._playerNumber]
+        self._server = self._players[1 - self._playerNumber]
+        
+        self._controlledAlive = True
+        self._serverAlive = True
+        
+        for i in range(1,6):
+            print(str(i) + "...")
+            time.sleep(1)
+        print("Go!")
+        
         self.start()
             
     def squareWidth(self):
@@ -39,10 +55,11 @@ class Grid(QFrame):
         rect = self.contentsRect()
         gridTop = rect.bottom() - Controller.BLOCKHEIGHT * self.squareHeight()
 
-        for pos in self._players[0].getTrail():
-            self.drawSquare(painter, rect.left() + pos[0] * self.squareWidth(), gridTop + pos[1] * self.squareHeight(), self._players[0].getColor())
-        for pos in self._players[1].getTrail():
-            self.drawSquare(painter, rect.left() + pos[0] * self.squareWidth(), gridTop + pos[1] * self.squareHeight(), self._players[1].getColor())
+        for pos in self._server.getTrail():
+            self.drawSquare(painter, rect.left() + pos[0] * self.squareWidth(), gridTop + pos[1] * self.squareHeight(), self._server.getColor())
+        for pos in self._controlled.getTrail():
+            self.drawSquare(painter, rect.left() + pos[0] * self.squareWidth(), gridTop + pos[1] * self.squareHeight(), self._controlled.getColor())
+        
 
     def drawSquare(self, painter, x, y, color):
         paintColor = QColor(color)
@@ -52,60 +69,76 @@ class Grid(QFrame):
         key = event.key()
         
         if key == Qt.Key_Left:
-            if self._players[0].getDirection() != Direction.RIGHT:
-                self._players[0].setDirection(Direction.LEFT) 
+            if self._controlled.getDirection() != Direction.RIGHT:
+                self._controlled.setDirection(Direction.LEFT) 
         elif key == Qt.Key_Right:
-            if self._players[0].getDirection() != Direction.LEFT:
-                self._players[0].setDirection(Direction.RIGHT)
+            if self._controlled.getDirection() != Direction.LEFT:
+                self._controlled.setDirection(Direction.RIGHT)
         elif key == Qt.Key_Down:
-            if self._players[0].getDirection() != Direction.UP:
-                self._players[0].setDirection(Direction.DOWN)
+            if self._controlled.getDirection() != Direction.UP:
+                self._controlled.setDirection(Direction.DOWN)
         elif key == Qt.Key_Up:
-            if self._players[0].getDirection() != Direction.DOWN:
-                self._players[0].setDirection(Direction.UP)
+            if self._controlled.getDirection() != Direction.DOWN:
+                self._controlled.setDirection(Direction.UP)
     
     def timerEvent(self, event):
         if event.timerId() == self._timer.timerId():
-            self._players[0].moveBike()
-            self._players[1].moveBike()
+            if not self._conn.isAlive():
+                self.endgame("You Win!")
+                return
+            if self._conn.isDraw():
+                self.endgame("Draw")
+                return
+            
+            self._conn.sendLocation(self._controlled.moveBike()) 
             self.collision()
             self.update()
 
     def collision(self):
         #collision with body
-        self._bike = self._players[0].getTrail()
-        self._other = self._players[1].getTrail()
-
+        self._bike = self._controlled.getTrail()
+        self._other = self._server.getTrail()
+        
+        lose = False
+        
+        if self._bike[0] == self._other[0]: # Draw event
+            self.endgame("Draw")
+            self._conn.notifyDraw()
+            return        
+        
         if self._bike[0] in self._other[1:]: #if head of bike 1 is in every other part of another bike. If bike == other head then they collided head on
-            self.endgame()
+            lose = True
             
-        if self._bike[0] == self._other[0]:
-            print("Draw")
-            self.endgame()
-
         for i in range(1, len(self._bike)):
             if self._bike[0] == self._bike[i]:
-                self.endgame()
+                lose = True
 
         #collision with left wall
         if self._bike[0][0] < 0:
-            self.endgame()
+            lose = True
 
         #collision with right wall
         if self._bike[0][0] == Controller.BLOCKWIDTH:
-            self.endgame()
+            lose = True
 
         #collision with floor
         if self._bike[0][1] == Controller.BLOCKHEIGHT:
-            self.endgame()
+            lose = True
 
         #collision with ceiling
         if self._bike[0][1] < 0:
-            self.endgame()
+            lose = True
+            
+            
+        if lose:
+            self.endgame("You Lose!")
+            self._conn.notifyDeath()
 
-        #collision with other bike
+    def closeConnection(self):
+        self._conn.close()
 
-    def endgame(self):
+    def endgame(self, result):
         self.setStyleSheet("background-color : black;")
         self._timer.stop()
         self.update()
+        print(result)

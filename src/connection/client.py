@@ -5,8 +5,13 @@ import sys
 class Client():
     PORT = 4477
     
-    def __init__(self, ip):
+    def __init__(self, ip, players):
         self._ready = False
+        self._alive = True
+        self._draw = False
+        
+        self._players = players
+        
         self._playerNumber = -1
         try:
             self._s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -15,13 +20,10 @@ class Client():
             print("CLIENT: error occurred trying to connect to server.")
             print(error)
             sys.exit()
-        #line = ""
-        #line += self._s.recv(1024).decode()
-        #line = ""
-        #line += self._s.recv(1024).decode()      
-        #self.parseCommands(line)
         threading.Thread(target=self.listener, args=()).start()
 
+    def close(self):
+        self._s.close()
             
     def listener(self):
         while True:
@@ -35,9 +37,7 @@ class Client():
             self.parseCommands(line)
 
     def parseCommands(self, line):
-        print(line)
         commands = line.split(";")
-        print(commands)
         for command in commands:
             if command == "":
                 continue
@@ -52,40 +52,51 @@ class Client():
     def sendCommand(self, command, value):
         self.send(self.makeCommandString(command, value))
     
-    def makeCommandString(command, value):
+    def makeCommandString(self, command, value):
         return command + ":" + value + ";"
     
     def processCommand(self, commandString): #dispatch table??
-        print("CLIENT: "+ commandString)
-        
         cmdArr = commandString.split(":")
         command = cmdArr[0]
         value = cmdArr[1]
         
         if command == "update-location":
-            return
-        elif command == "dead":
-            return
+            self.updateLocation(value)
+        elif command == "set-dead":
+            self._alive = False
+        elif command == "set-draw":
+            self._draw = True
         elif command == "set-number":
             self._playerNumber = int(value)
         elif command == "start-game":
-            self.startGame()
-    # Commands
-    def startGame(self):
-        self._ready = True
-        return
+            self._ready = True
+            
+    def getPlayerNumber(self):
+        return self._playerNumber
+    
+    def isAlive(self):
+        return self._alive
+    
+    def isDraw(self):
+        return self._draw
     
     def isReady(self):
         return self._ready
+    
             
-    def sendLocation(self, xPos, yPos): #update user bike
-        return
+    # Commands        
+    def sendLocation(self, value): #update user bike
+        self.sendCommand("set-location", value)
 
     def updateLocation(self, value): #update server bike
-        return
+        coords = value.split(",")
+        self._players[1 - self._playerNumber].getTrail().insert(0, [int(coords[0]), int(coords[1])])
 
     def notifyDeath(self):
-        return
+        self.sendCommand("set-dead", "true")
+    
+    def notifyDraw(self):
+        self.sendCommand("set-draw", "true")
     
     
     

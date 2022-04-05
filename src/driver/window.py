@@ -1,4 +1,3 @@
-from re import X
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -14,4 +13,10 @@ class Window(QMainWindow):
         self.setWindowTitle('Light Bikes')
         self.setGeometry(100, 100, 600, 400)
         self.show()
+        
+    def closeEvent(self, event):
+        try:
+            self._grid.closeConnection()
+        except:
+            pass
 
