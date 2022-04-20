@@ -17,10 +17,25 @@ class Grid(QFrame):
 
         self._players = [Bike(5, 10, Direction.RIGHT, Color.BLUE.value), Bike(55, 30, Direction.LEFT, Color.ORANGE.value)]
 
-        #conn will be closed inthis class
+        #conn will be closed in this class
         self._conn = Client(ip, self._players)
 
         self.setFocusPolicy(Qt.StrongFocus)
+        
+        print()
+        print("""
+            -------------------------------------------------------------------
+             _      _____ _____ _    _ _______   ____ _____ _  ________  _____  
+            | |    |_   _/ ____| |  | |__   __| |  _ \_   _| |/ /  ____|/ ____| 
+            | |      | || |  __| |__| |  | |    | |_) || | | ' /| |__  | (___   
+            | |      | || | |_ |  __  |  | |    |  _ < | | |  < |  __|  \___ \  
+            | |____ _| || |__| | |  | |  | |    | |_) || |_| . \| |____ ____) | 
+            |______|_____\_____|_|  |_|  |_|    |____/_____|_|\_\______|_____/ 
+            
+            ------------------------------------------------------------------- 
+            """)
+        print()
+        
         
         while not self._conn.isReady():
             pass
@@ -141,4 +156,4 @@ class Grid(QFrame):
         self.setStyleSheet("background-color : black;")
         self._timer.stop()
         self.update()
-        print(result)
+        print("\n" + result + "\n")

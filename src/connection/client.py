@@ -31,8 +31,9 @@ class Client():
             try:
                 data = self._s.recv(1024)
                 line = data.decode()
-            except Exception as error:
-                print("CLIENT: " + str(error))
+            except Exception as error: # This most often occurs when a client is closed after / during a game
+                #print("CLIENT: " + str(error))
+                print("CLIENT: Leaving game...")
                 sys.exit()
             self.parseCommands(line)
 

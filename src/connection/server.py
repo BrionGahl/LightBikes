@@ -49,6 +49,7 @@ class Player():
         
         threading.Thread(target=self.listener, args=()).start()
         if (self._playerNumber + 1 == Server.MAX_PLAYERS):
+            print("SERVER: maximum players joined, starting game\n\n")
             self.startGame()
     
     def listener(self):
@@ -57,8 +58,9 @@ class Player():
             try:
                 data = self._conn.recv(1024)
                 line = data.decode()
-            except Exception as error:
-                print("SERVER: " + str(error))
+            except Exception as error: # most often occurs when closing a client / server
+                #print("SERVER: " + str(error))
+                print("SERVER: Shutting down...")
                 sys.exit()
             self.parseCommands(line)
     
