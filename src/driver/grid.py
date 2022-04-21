@@ -8,37 +8,63 @@ from connection.client import Client
 
 import time
 
-class Grid(QFrame):
+class Worker(QObject):
+    finished = pyqtSignal()
     
-    def __init__(self, parent, ip):
-        super(Grid, self).__init__(parent)
-        self._timer = QBasicTimer()
-        self.setStyleSheet("Border : 2px solid black")
-
-        self._players = [Bike(5, 10, Direction.RIGHT, Color.BLUE.value), Bike(55, 30, Direction.LEFT, Color.ORANGE.value)]
-
-        #conn will be closed inthis class
-        self._conn = Client(ip, self._players)
-
-        self.setFocusPolicy(Qt.StrongFocus)
-        
-        while not self._conn.isReady():
+    def __init__(self, parent):
+        super(Worker, self).__init__()
+        self.parent = parent
+    
+    def run(self):
+        while not self.parent._conn.isReady():
             pass
+        self.parent._playerNumber = self.parent._conn.getPlayerNumber()
         
-        self._playerNumber = self._conn.getPlayerNumber()
+        self.parent._controlled = self.parent._players[self.parent._playerNumber]
+        self.parent._server = self.parent._players[1 - self.parent._playerNumber]
         
-        self._controlled = self._players[self._playerNumber]
-        self._server = self._players[1 - self._playerNumber]
-        
-        self._controlledAlive = True
-        self._serverAlive = True
+        self.parent._controlledAlive = True
+        self.parent._serverAlive = True
         
         for i in range(1,6):
-            print(str(i) + "...")
+            self.parent._parent.console.append(str(i) + "...")
             time.sleep(1)
-        print("Go!")
+        self.parent._parent.console.append("Go!")
+        self.parent._parent.stackedWidget.setCurrentIndex(3)
+        self.finished.emit()
+
+
+class Grid(QFrame):
+    def checkReady(self, parent):
+        self.thread = QThread()
+        self.worker = Worker(parent)
+        self.worker.moveToThread(self.thread)
         
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.worker.finished.connect(self.readyEvent)
+        
+        self.thread.start()
+        
+    def readyEvent(self):
         self.start()
+               
+    def __init__(self, parent, ip):
+        super(Grid, self).__init__(parent)
+        self._parent = parent
+        
+        parent.stackedWidget.addWidget(self)
+        parent.show()
+        self._timer = QBasicTimer()
+        self.setStyleSheet("Border : 2px solid black")
+        self.setFocusPolicy(Qt.StrongFocus)
+
+        self._players = [Bike(5, 10, Direction.RIGHT, Color.BLUE.value), Bike(55, 30, Direction.LEFT, Color.ORANGE.value)]
+        self._conn = Client(ip, self._players, parent.console)
+        
+        self.checkReady(self)        
             
     def squareWidth(self):
         return self.contentsRect().width() / Controller.BLOCKWIDTH
@@ -141,4 +167,6 @@ class Grid(QFrame):
         self.setStyleSheet("background-color : black;")
         self._timer.stop()
         self.update()
-        print(result)
+        self._parent.console.append(result)
+        self._parent.stackedWidget.setCurrentIndex(1)
+        print(result + "\n")

@@ -33,6 +33,13 @@ class Server():
             threading.Thread(target=currPlayer.run, args=()).start()
             
             self._acceptingPlayers = len(self._connectedPlayers) < Server.MAX_PLAYERS
+    
+    def close(self):
+        self._s.shutdown(socket.SHUT_RDWR)
+        self._s.close()
+        
+    def startGame(self):
+        self._connectedPlayers[0].startGame()
         
 
 class Player():
@@ -45,10 +52,12 @@ class Player():
         
     def run(self):
         print("SERVER: sending player number: " + str(self._playerNumber))
+        self.sendMessage("Player " + str(self._playerNumber) + " connected.")
         self.sendPlayerNumber()
         
         threading.Thread(target=self.listener, args=()).start()
         if (self._playerNumber + 1 == Server.MAX_PLAYERS):
+            print("SERVER: maximum players joined, starting game\n\n")
             self.startGame()
     
     def listener(self):
@@ -108,3 +117,6 @@ class Player():
         
     def sendPlayerNumber(self):
         self.send(self.makeCommandString("set-number", str(self._playerNumber)))
+        
+    def sendMessage(self, msg):
+        self.pushToAll(self.makeCommandString("message", msg))

@@ -5,12 +5,15 @@ import sys
 class Client():
     PORT = 4477
     
-    def __init__(self, ip, players):
+    def __init__(self, ip, players, console):        
         self._ready = False
         self._alive = True
         self._draw = False
         
+        self._message = ""
+        
         self._players = players
+        self._console = console
         
         self._playerNumber = -1
         try:
@@ -21,10 +24,7 @@ class Client():
             print(error)
             sys.exit()
         threading.Thread(target=self.listener, args=()).start()
-
-    def close(self):
-        self._s.close()
-            
+        
     def listener(self):
         while True:
             line = ""
@@ -70,6 +70,8 @@ class Client():
             self._playerNumber = int(value)
         elif command == "start-game":
             self._ready = True
+        elif command == "message":
+            self._console.append(value)
             
     def getPlayerNumber(self):
         return self._playerNumber
@@ -82,8 +84,7 @@ class Client():
     
     def isReady(self):
         return self._ready
-    
-            
+              
     # Commands        
     def sendLocation(self, value): #update user bike
         self.sendCommand("set-location", value)
@@ -97,6 +98,10 @@ class Client():
     
     def notifyDraw(self):
         self.sendCommand("set-draw", "true")
+        
+    def close(self):
+        
+        self._s.close()
     
     
     

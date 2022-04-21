@@ -4,7 +4,6 @@ import argparse
 import threading
 
 from driver.window import Window
-
 from connection.server import Server
 
 def runServer():
@@ -19,12 +18,28 @@ def main():
     parser.add_argument("-s", "--server", dest="server", action="store_true", help="run as host server")
     args = parser.parse_args()
         
+    print()
+    print("""
+        -------------------------------------------------------------------
+         _      _____ _____ _    _ _______   ____ _____ _  ________  _____  
+        | |    |_   _/ ____| |  | |__   __| |  _ \_   _| |/ /  ____|/ ____| 
+        | |      | || |  __| |__| |  | |    | |_) || | | ' /| |__  | (___   
+        | |      | || | |_ |  __  |  | |    |  _ < | | |  < |  __|  \___ \  
+        | |____ _| || |__| | |  | |  | |    | |_) || |_| . \| |____ ____) | 
+        |______|_____\_____|_|  |_|  |_|    |____/_____|_|\_\______|_____/ 
+        
+        ------------------------------------------------------------------- 
+        """)
+    print()    
+    
     ip = args.ip
+    host = False
     if args.server:
         server = threading.Thread(target=runServer, args=(), daemon=True)
         server.start()
         ip = "localhost"
-        
+        host = True
+            
     app = QApplication([])
     window = Window(ip)
     sys.exit(app.exec_())
