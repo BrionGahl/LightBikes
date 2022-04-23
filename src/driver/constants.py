@@ -13,6 +13,6 @@ class Color(Enum):
     PINK = 0xF551FF
 
 class Controller():
-    SPEED = 300
+    SPEED = 80
     BLOCKWIDTH = 60
     BLOCKHEIGHT = 40

@@ -97,6 +97,9 @@
                 <layout class="QVBoxLayout" name="verticalLayout_5">
                  <item>
                   <widget class="QTextEdit" name="console">
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
                    <property name="readOnly">
                     <bool>true</bool>
                    </property>

@@ -13,6 +13,8 @@ class Server():
     def __init__(self):
         self._acceptingPlayers = True
         self._connectedPlayers = []
+        self._moves = [0, 0]
+        
         try:
             self._s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -27,7 +29,7 @@ class Server():
             conn, addr = self._s.accept()
             print("SERVER: connection from", addr[0])
             
-            currPlayer = Player(conn, len(self._connectedPlayers), self._connectedPlayers)
+            currPlayer = Player(conn, len(self._connectedPlayers), self._moves, self._connectedPlayers)
             self._connectedPlayers.append(currPlayer)
             
             threading.Thread(target=currPlayer.run, args=()).start()
@@ -38,18 +40,18 @@ class Server():
         self._s.shutdown(socket.SHUT_RDWR)
         self._s.close()
         
-    def startGame(self):
-        self._connectedPlayers[0].startGame()
         
 
 class Player():
     #conn will be closed in this class
-    def __init__(self, conn, playerNumber, connectedPlayers):
+    def __init__(self, conn, playerNumber, moves, connectedPlayers):
         self._conn = conn
         self._connectedPlayers = connectedPlayers
         self._playerNumber = playerNumber
-        return
+        self._moves = moves
         
+        return
+    
     def run(self):
         print("SERVER: sending player number: " + str(self._playerNumber))
         self.sendMessage("Player " + str(self._playerNumber) + " connected.")
@@ -59,7 +61,7 @@ class Player():
         if (self._playerNumber + 1 == Server.MAX_PLAYERS):
             print("SERVER: maximum players joined, starting game\n\n")
             self.startGame()
-    
+        
     def listener(self):
         line = ""
         while True:
@@ -105,7 +107,11 @@ class Player():
         value = cmdArr[1]
         
         if command == "set-location":
-            self.pushToOthers(self._playerNumber, "update-location:" + value)
+            while self._moves[self._playerNumber] > self._moves[1-self._playerNumber]:
+                continue
+            self.pushToOthers(self._playerNumber, "update-location:" + value + ";")
+            self._moves[self._playerNumber] += 1
+            print(f"Player: {str(self._playerNumber)} -> {str(self._moves[0])},{str(self._moves[1])}")
         elif command == "set-dead":
             self.pushToOthers(self._playerNumber, "set-dead:" + value)
         elif command == "set-draw":
