@@ -17,7 +17,6 @@ class Grid(QFrame):
 
         self._players = [Bike(5, 10, Direction.RIGHT, Color.BLUE.value), Bike(55, 30, Direction.LEFT, Color.ORANGE.value)]
 
-        #conn will be closed in this class
         self._conn = Client(ip, self._players)
 
         self.setFocusPolicy(Qt.StrongFocus)
