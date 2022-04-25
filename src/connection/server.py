@@ -63,7 +63,6 @@ class Player():
                 data = self._conn.recv(1024)
                 line = data.decode()
             except Exception as error: # most often occurs when closing a client / server
-                #print("SERVER: " + str(error))
                 print("SERVER: Shutting down...")
                 sys.exit()
             self.parseCommands(line)
@@ -106,7 +105,7 @@ class Player():
                 continue
             self.pushToOthers(self._playerNumber, "update-location:" + value + ";")
             self._moves[self._playerNumber] += 1
-            print(f"Player: {str(self._playerNumber)} -> {str(self._moves[0])},{str(self._moves[1])}")
+            #print(f"Player: {str(self._playerNumber)} -> {str(self._moves[0])},{str(self._moves[1])}")
         elif command == "set-dead":
             self.pushToOthers(self._playerNumber, "set-dead:" + value)
         elif command == "set-draw":
