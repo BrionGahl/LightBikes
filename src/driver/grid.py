@@ -14,6 +14,10 @@ class Worker(QObject):
     def __init__(self, parent):
         super(Worker, self).__init__()
         self.parent = parent
+        
+    def changeStackedWidget(self):
+        self.parent._parent.stackedWidget.setCurrentIndex(1)
+        return
     
     def run(self):
         while not self.parent._conn.isReady():
@@ -54,6 +58,8 @@ class Grid(QFrame):
     def __init__(self, parent, ip):
         super(Grid, self).__init__(parent)
         self._parent = parent
+        
+        self._mainThread = QCoreApplication.instance().thread()
         
         parent.stackedWidget.addWidget(self)
         parent.show()
@@ -168,5 +174,8 @@ class Grid(QFrame):
         self._timer.stop()
         self.update()
         self._parent.console.append(result)
-        self._parent.stackedWidget.setCurrentIndex(1)
+        #self._parent.stackedWidget.setCurrentIndex(1)
+        worker = Worker(self)
+        worker.moveToThread(self._mainThread)
+        worker.changeStackedWidget()
         print(result + "\n")
