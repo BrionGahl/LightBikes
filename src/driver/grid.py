@@ -8,6 +8,8 @@ from connection.client import Client
 
 import time
 
+COLOR = ["blue", "orange"]
+
 class Grid(QFrame):
     
     def __init__(self, parent, ip):
@@ -133,11 +135,16 @@ class Grid(QFrame):
             self.endgame("You Lose!")
             self._conn.notifyDeath()
 
-    def closeConnection(self):
+    def closeConnection(self): #potentially redundent.
         self._conn.close()
 
     def endgame(self, result):
-        self.setStyleSheet("background-color : black;")
+        if result == "You Lose!":
+            self.setStyleSheet("background-color: " + COLOR[1 - self._playerNumber])
+        elif result == "You Win!":
+            self.setStyleSheet("background-color: " + COLOR[0 + self._playerNumber])
+        else:
+            self.setStyleSheet("background-color : black;")
         self._timer.stop()
         self.update()
         print("\n" + result + "\n")
